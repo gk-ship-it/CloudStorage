@@ -1,0 +1,7 @@
+build/
+Crow/
+
+*.o
+*.out
+
+compile_commands.json

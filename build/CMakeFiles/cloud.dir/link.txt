@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/cloud.dir/link.d CMakeFiles/cloud.dir/src/main.cpp.o -o cloud  -lmysqlclient
