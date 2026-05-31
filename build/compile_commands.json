@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/gulshan/Projects/CloudStorage/build",
+  "command": "/usr/bin/c++  -I/home/gulshan/Projects/CloudStorage/Crow/include -I/home/gulshan/Projects/CloudStorage/include -I/usr/include/mysql -std=gnu++17 -o CMakeFiles/cloud.dir/src/main.cpp.o -c /home/gulshan/Projects/CloudStorage/src/main.cpp",
+  "file": "/home/gulshan/Projects/CloudStorage/src/main.cpp",
+  "output": "CMakeFiles/cloud.dir/src/main.cpp.o"
+}
+]

@@ -1,0 +1,3 @@
+/home/gulshan/Projects/CloudStorage/build/CMakeFiles/cloud.dir
+/home/gulshan/Projects/CloudStorage/build/CMakeFiles/edit_cache.dir
+/home/gulshan/Projects/CloudStorage/build/CMakeFiles/rebuild_cache.dir
