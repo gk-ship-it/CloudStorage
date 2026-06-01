@@ -8,14 +8,13 @@
 
 void registerFilesRoute(
     crow::SimpleApp &app,
-    MYSQL *conn
-)
+    MYSQL *conn)
 {
     CROW_ROUTE(app, "/files")
-    .methods("GET"_method)
+        .methods("GET"_method)
 
-    ([conn]()
-    {
+            ([conn]()
+             {
         if(
             mysql_query(
                 conn,
@@ -45,6 +44,9 @@ void registerFilesRoute(
         MYSQL_ROW row;
 
         std::string output;
+        crow::json::wvalue json;
+
+        int index = 0;
 
         while(
             (row =
@@ -54,29 +56,23 @@ void registerFilesRoute(
             )
         )
         {
-            output += "ID: ";
-            output += row[0];
-            output += "\n";
-
-            output += "Filename: ";
-            output += row[1];
-            output += "\n";
-
-            output += "Size: ";
-            output +=
+            json[index]["id"] =
+                row[0];
+        
+            json[index]["filename"] =
+                row[1];
+        
+            json[index]["size"] =
             (
                 row[3]
                 ? row[3]
                 : "NULL"
             );
-            output += "\n";
-
-            output += "Uploaded: ";
-            output += row[4];
-            output += "\n";
-
-            output +=
-                "-------------------\n";
+        
+            json[index]["uploaded"] =
+                row[4];
+        
+            index++;
         }
 
         mysql_free_result(
@@ -84,8 +80,7 @@ void registerFilesRoute(
         );
 
         return crow::response(
-            200,
-            output
-        );
+            json
+        );    
     });
 }

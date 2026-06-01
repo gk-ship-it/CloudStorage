@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cloud Storage</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Cloud Storage</p>
+          <h1>Files</h1>
+        </div>
+        <button class="icon-button" id="refreshButton" type="button" title="Refresh files" aria-label="Refresh files">
+          <span aria-hidden="true">↻</span>
+        </button>
+      </header>
+
+      <section class="upload-panel" aria-label="Upload file">
+        <div class="file-control">
+          <input id="fileInput" type="file">
+          <input id="fileNameInput" type="text" placeholder="filename.txt" autocomplete="off">
+        </div>
+        <button class="primary-button" id="uploadButton" type="button">Upload</button>
+      </section>
+
+      <section class="status-row" aria-live="polite">
+        <p id="statusText">Ready</p>
+        <p id="fileCount">0 files</p>
+      </section>
+
+      <section class="file-area" aria-label="Stored files">
+        <div class="table-head" aria-hidden="true">
+          <span>Name</span>
+          <span>Size</span>
+          <span>Uploaded</span>
+          <span>Actions</span>
+        </div>
+        <div id="fileList" class="file-list"></div>
+      </section>
+    </main>
+
+    <dialog id="detailDialog" class="dialog">
+      <div class="dialog-head">
+        <h2 id="detailTitle">File</h2>
+        <button class="icon-button small" id="closeDialogButton" type="button" title="Close" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <pre id="detailBody"></pre>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
