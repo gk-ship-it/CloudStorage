@@ -27,9 +27,19 @@ void registerUploadRoute(
                          "Invalid filename");
                  }
 
-                 std::ofstream file(
+                  std::string category =
+                     getCategory(
+                         filename);
+
+                 std::string path =
                      "../uploads/" +
-                     filename);
+                     category +
+                     "/" +
+                     filename;
+                     
+                 std::ofstream file(
+                    path
+                );
 
                  if (!file)
                  {
@@ -45,15 +55,7 @@ void registerUploadRoute(
 
                  file.close();
 
-                 std::string category =
-                     getCategory(
-                         filename);
-
-                 std::string path =
-                     "../uploads/" +
-                     category +
-                     "/" +
-                     filename;
+                
 
                  std::string safeFilename =
                      escapeSQL(

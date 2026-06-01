@@ -5,3 +5,6 @@ Crow/
 *.out
 
 compile_commands.json
+
+uploads/*
+!uploads/.gitkeep

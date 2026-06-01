@@ -9,101 +9,144 @@
 
 void registerRenameRoute(
     crow::SimpleApp &app,
-    MYSQL *conn
-)
+    MYSQL *conn)
 {
     CROW_ROUTE(
         app,
-        "/rename/<string>/<string>"
-    )
-    .methods("POST"_method)
+        "/rename/<string>/<string>")
+        .methods("POST"_method)
 
-    ([conn](
-        std::string oldName,
-        std::string newName
-    )
-    {
-        if(
-            !safe(oldName)
-            ||
-            !safe(newName)
-        )
-        {
-            return errorResponse(
-    400,
-    "Invalid filename"
-);
-        }
+            ([conn](
+                 std::string oldName,
+                 std::string newName)
+             {
+                 if (
+                     !safe(oldName) ||
+                     !safe(newName))
+                 {
+                     return errorResponse(
+                         400,
+                         "Invalid filename");
+                 }
 
-        std::string oldPath =
-            "../uploads/" + oldName;
+                std::string safeOldName =
+                    escapeSQL(
+                        conn,
+                        oldName
+                    );
+                
+                std::string selectquery =
+                    "SELECT path, category "
+                    "FROM files "
+                    "WHERE filename='" +
+                    safeOldName +
+                    "'";
+                
+                if(
+                    mysql_query(
+                        conn,
+                        selectquery.c_str()
+                    )
+                )
+                {
+                    return errorResponse(
+                        500,
+                        "Database error"
+                    );
+                }
 
-        std::string newPath =
-            "../uploads/" + newName;
+                MYSQL_RES *result =
+                    mysql_store_result(
+                        conn
+                    );
+                
+                if(result == NULL)
+                {
+                    return errorResponse(
+                        500,
+                        "Result error"
+                    );
+                }
 
-        if(
-            std::rename(
-                oldPath.c_str(),
-                newPath.c_str()
-            ) != 0
-        )
-        {
-            return errorResponse(
-    404,
-    "Rename failed"
-);
-        }
+                MYSQL_ROW row =
+                    mysql_fetch_row(
+                        result
+                    );
+                
+                if(row == NULL)
+                {
+                    mysql_free_result(
+                        result
+                    );
+                
+                    return errorResponse(
+                        404,
+                        "File not found"
+                    );
+                }
 
-        std::string safeOldName =
-            escapeSQL(
-                conn,
-                oldName
-            );
+                std::string oldPath =
+                     row[0];
 
-        std::string safeNewName =
-            escapeSQL(
-                conn,
-                newName
-            );
+                std::string category =
+                     row[1];
+                
+                mysql_free_result(
+                    result
+                );
+                
+                std::string newPath =
+                    "../uploads/" +
+                    category +
+                    "/" +
+                    newName;
 
-        std::string safeNewPath =
-            escapeSQL(
-                conn,
-                newPath
-            );
+                 if (
+                     std::rename(
+                         oldPath.c_str(),
+                         newPath.c_str()) != 0)
+                 {
+                     return errorResponse(
+                         404,
+                         "Rename failed");
+                 }
 
-        std::string query =
-            "UPDATE files "
-            "SET filename='" +
-            safeNewName +
-            "', path='" +
-            safeNewPath +
-            "' "
-            "WHERE filename='" +
-            safeOldName +
-            "'";
+                 std::string safeNewName =
+                     escapeSQL(
+                         conn,
+                         newName);
 
-        if(
-            mysql_query(
-                conn,
-                query.c_str()
-            )
-        )
-        {
-            return errorResponse(
-    500,
-    "Database update error"
-);
-        }
+                 std::string safeNewPath =
+                     escapeSQL(
+                         conn,
+                         newPath);
 
-        crow::json::wvalue json;
+                 std::string updatequery =
+                     "UPDATE files "
+                     "SET filename='" +
+                     safeNewName +
+                     "', path='" +
+                     safeNewPath +
+                     "' "
+                     "WHERE filename='" +
+                     safeOldName +
+                     "'";
 
-        json["success"] = true;
-        json["message"] = "File renamed";
+                 if (
+                     mysql_query(
+                         conn,
+                         updatequery.c_str()))
+                 {
+                     return errorResponse(
+                         500,
+                         "Database update error");
+                 }
 
-        return crow::response(
-            json
-        );
+                 crow::json::wvalue json;
 
-    });
+                 json["success"] = true;
+                 json["message"] = "File renamed";
+
+                 return crow::response(
+                     json); });
 }

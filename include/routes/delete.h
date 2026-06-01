@@ -21,14 +21,73 @@ void registerDeleteRoute(
         if(!safe(filename))
         {
             return errorResponse(
-    400,
-    "Invalid filename"
-);
-        }
+                400,
+                "Invalid filename"
+            );
+                    }
+                
+                    std::string safeFilename =
+                escapeSQL(
+                    conn,
+                    filename
+                );
+            
+            std::string selectQuery =
+                "SELECT path "
+                "FROM files "
+                "WHERE filename='" +
+                safeFilename +
+                "'";
+            
+            if(
+                mysql_query(
+                    conn,
+                    selectQuery.c_str()
+                )
+            )
+            {
+                return errorResponse(
+                    500,
+                    "Database error"
+                );
+            }
 
-        std::string path =
-            "../uploads/" +
-            filename;
+            MYSQL_RES *result =
+                mysql_store_result(
+                    conn
+                );
+            
+            if(result == NULL)
+            {
+                return errorResponse(
+                    500,
+                    "Result error"
+                );
+            }
+
+            MYSQL_ROW row =
+                mysql_fetch_row(
+                    result
+                );
+            
+            if(row == NULL)
+            {
+                mysql_free_result(
+                    result
+                );
+            
+                return errorResponse(
+                    404,
+                    "File not found"
+                );
+            }
+
+            std::string path =
+                row[0];
+
+            mysql_free_result(
+                result
+            );
 
         if(
             std::remove(
@@ -37,16 +96,10 @@ void registerDeleteRoute(
         )
         {
             return errorResponse(
-    404,
-    "File Not Found"
-);
+            404,
+            "File Not Found"
+        );
         }
-
-        std::string safeFilename =
-            escapeSQL(
-                conn,
-                filename
-            );
 
         std::string query =
             "DELETE FROM files "
@@ -74,6 +127,5 @@ void registerDeleteRoute(
 
         return crow::response(
             json
-        ); 
-    });
+        ); });
 }

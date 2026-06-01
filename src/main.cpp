@@ -52,7 +52,7 @@ int main()
         << "MySQL Connected\n";
 
     crow::SimpleApp app;
-    registerDownloadRoute(app);
+    registerDownloadRoute(app, conn);
     registerFilesRoute(app, conn);
     registerFileRoute(app, conn);
     registerRenameRoute(app, conn);

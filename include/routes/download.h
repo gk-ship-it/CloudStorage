@@ -3,18 +3,18 @@
 #include "crow.h"
 #include <fstream>
 #include <sstream>
-
+#include <mysql/mysql.h>
 #include "cloud_utils.h"
 
 void registerDownloadRoute(
-    crow::SimpleApp &app
-)
+    crow::SimpleApp &app,
+    MYSQL *conn)
 {
     CROW_ROUTE(app, "/download/<string>")
-    .methods("GET"_method)
+        .methods("GET"_method)
 
-    ([](std::string filename)
-    {
+            ([conn](std::string filename)
+             {
         if(!safe(filename))
         {
             return crow::response(
@@ -23,13 +23,76 @@ void registerDownloadRoute(
             );
         }
 
+        std::string safeFilename =
+            escapeSQL(
+                conn,
+                filename
+            );
+        
+        std::string query =
+            "SELECT path "
+            "FROM files "
+            "WHERE filename='" +
+            safeFilename +
+            "'";
+        
+        if(
+            mysql_query(
+                conn,
+                query.c_str()
+            )
+        )
+        {
+            return errorResponse(
+                500,
+                "Database error"
+            );
+        }
+
+        MYSQL_RES *result =
+            mysql_store_result(
+                conn
+            );
+        
+        if(result == NULL)
+        {
+            return errorResponse(
+                500,
+                "Result error"
+            );
+        }
+
+        MYSQL_ROW row =
+            mysql_fetch_row(
+                result
+            );
+        
+        if(row == NULL)
+        {
+            mysql_free_result(
+                result
+            );
+        
+            return errorResponse(
+                404,
+                "File not found"
+            );
+        }
+
+        std::string path =
+            row[0];
+
+        mysql_free_result(
+            result
+        );
+
         std::ifstream file(
-            "../uploads/" + filename
+            path
         );
 
         if(!file)
         {
-            return crow::response(
+            return errorResponse(
                 404,
                 "File not found"
             );
@@ -42,6 +105,5 @@ void registerDownloadRoute(
         return crow::response(
             200,
             buffer.str()
-        );
-    });
+        ); });
 }
