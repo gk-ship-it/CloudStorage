@@ -9,23 +9,21 @@
 
 void registerDeleteRoute(
     crow::SimpleApp &app,
-    MYSQL *conn
-)
+    MYSQL *conn)
 {
     CROW_ROUTE(
         app,
-        "/delete/<string>"
-    )
-    .methods("POST"_method)
+        "/delete/<string>")
+        .methods("POST"_method)
 
-    ([conn](std::string filename)
-    {
+            ([conn](std::string filename)
+             {
         if(!safe(filename))
         {
-            return crow::response(
-                400,
-                "Invalid filename"
-            );
+            return errorResponse(
+    400,
+    "Invalid filename"
+);
         }
 
         std::string path =
@@ -38,10 +36,10 @@ void registerDeleteRoute(
             ) != 0
         )
         {
-            return crow::response(
-                404,
-                "File not found"
-            );
+            return errorResponse(
+    404,
+    "File Not Found"
+);
         }
 
         std::string safeFilename =
@@ -63,15 +61,19 @@ void registerDeleteRoute(
             )
         )
         {
-            return crow::response(
-                500,
-                "Database error"
-            );
+            return errorResponse(
+    500,
+    "Database error"
+);
         }
 
+        crow::json::wvalue json;
+
+        json["success"] = true;
+        json["message"] = "File deleted";
+
         return crow::response(
-            200,
-            "File deleted"
-        );
+            json
+        ); 
     });
 }

@@ -25,10 +25,10 @@ void registerUploadRoute(
     {
         if(!safe(filename))
         {
-            return crow::response(
-                400,
-                "Invalid filename"
-            );
+            return errorResponse(
+    400,
+    "Invalid filename"
+);
         }
 
         std::ofstream file(
@@ -38,10 +38,10 @@ void registerUploadRoute(
 
         if(!file)
         {
-            return crow::response(
-                500,
-                "Cannot create file"
-            );
+            return errorResponse(
+    500,
+    "Cannot create file"
+);
         }
 
         file << req.body;
@@ -87,15 +87,21 @@ void registerUploadRoute(
             )
         )
         {
-            return crow::response(
-                500,
-                "Database error"
-            );
+            return errorResponse(
+    500,
+    "Database error"
+);
         }
 
+        crow::json::wvalue json;
+
+        json["success"] = true;
+        json["message"] = "Saved";
+
         return crow::response(
-            200,
-            "Saved"
+            json
         );
+
+
     });
 }

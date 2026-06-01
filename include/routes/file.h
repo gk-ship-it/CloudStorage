@@ -17,10 +17,10 @@ void registerFileRoute(
              {
         if(!safe(filename))
         {
-            return crow::response(
-                400,
-                "Invalid filename"
-            );
+            return errorResponse(
+    400,
+    "Invalid filename"
+);
         }
 
         std::string safeFilename =
@@ -42,10 +42,10 @@ void registerFileRoute(
             )
         )
         {
-            return crow::response(
-                500,
-                "Database error"
-            );
+            return errorResponse(
+    500,
+    "Database error"
+);
         }
 
         MYSQL_RES *result =
@@ -55,10 +55,10 @@ void registerFileRoute(
 
         if(result == NULL)
         {
-            return crow::response(
-                500,
-                "Result error"
-            );
+            return errorResponse(
+    500,
+    "Result error"
+);
         }
 
         MYSQL_ROW row =
@@ -72,10 +72,10 @@ void registerFileRoute(
                 result
             );
 
-            return crow::response(
-                404,
-                "File not found"
-            );
+            return errorResponse(
+    404,
+    "File not found"
+);
         }
 
         crow::json::wvalue json;
@@ -97,6 +97,5 @@ void registerFileRoute(
 
         return crow::response(
             json
-        ); }
-    );
+        ); });
 }

@@ -29,10 +29,10 @@ void registerRenameRoute(
             !safe(newName)
         )
         {
-            return crow::response(
-                400,
-                "Invalid filename"
-            );
+            return errorResponse(
+    400,
+    "Invalid filename"
+);
         }
 
         std::string oldPath =
@@ -48,10 +48,10 @@ void registerRenameRoute(
             ) != 0
         )
         {
-            return crow::response(
-                404,
-                "Rename failed"
-            );
+            return errorResponse(
+    404,
+    "Rename failed"
+);
         }
 
         std::string safeOldName =
@@ -90,15 +90,20 @@ void registerRenameRoute(
             )
         )
         {
-            return crow::response(
-                500,
-                "Database update error"
-            );
+            return errorResponse(
+    500,
+    "Database update error"
+);
         }
 
+        crow::json::wvalue json;
+
+        json["success"] = true;
+        json["message"] = "File renamed";
+
         return crow::response(
-            200,
-            "File renamed"
+            json
         );
+
     });
 }

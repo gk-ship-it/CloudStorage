@@ -22,10 +22,10 @@ void registerFilesRoute(
             )
         )
         {
-            return crow::response(
-                500,
-                "Database error"
-            );
+            return errorResponse(
+    500,
+    "Database error"
+);
         }
 
         MYSQL_RES *result =
@@ -35,10 +35,10 @@ void registerFilesRoute(
 
         if(result == NULL)
         {
-            return crow::response(
-                500,
-                "Result error"
-            );
+            return errorResponse(
+    500,
+    "Result error"
+);
         }
 
         MYSQL_ROW row;
