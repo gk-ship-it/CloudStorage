@@ -9,99 +9,97 @@
 
 void registerUploadRoute(
     crow::SimpleApp &app,
-    MYSQL *conn
-)
+    MYSQL *conn)
 {
     CROW_ROUTE(
         app,
-        "/upload/<string>"
-    )
-    .methods("POST"_method)
+        "/upload/<string>")
+        .methods("POST"_method)
 
-    ([conn](
-        const crow::request &req,
-        std::string filename
-    )
-    {
-        if(!safe(filename))
-        {
-            return errorResponse(
-    400,
-    "Invalid filename"
-);
-        }
+            ([conn](
+                 const crow::request &req,
+                 std::string filename)
+             {
+                 if (!safe(filename))
+                 {
+                     return errorResponse(
+                         400,
+                         "Invalid filename");
+                 }
 
-        std::ofstream file(
-            "../uploads/" +
-            filename
-        );
+                 std::ofstream file(
+                     "../uploads/" +
+                     filename);
 
-        if(!file)
-        {
-            return errorResponse(
-    500,
-    "Cannot create file"
-);
-        }
+                 if (!file)
+                 {
+                     return errorResponse(
+                         500,
+                         "Cannot create file");
+                 }
 
-        file << req.body;
+                 file << req.body;
 
-        size_t fileSize =
-            req.body.size();
+                 size_t fileSize =
+                     req.body.size();
 
-        file.close();
+                 file.close();
 
-        std::string path =
-            "../uploads/" +
-            filename;
+                 std::string category =
+                     getCategory(
+                         filename);
 
-        std::string safeFilename =
-            escapeSQL(
-                conn,
-                filename
-            );
+                 std::string path =
+                     "../uploads/" +
+                     category +
+                     "/" +
+                     filename;
 
-        std::string safePath =
-            escapeSQL(
-                conn,
-                path
-            );
+                 std::string safeFilename =
+                     escapeSQL(
+                         conn,
+                         filename);
 
-        std::string query =
-            "INSERT INTO files "
-            "(filename,path,size) "
-            "VALUES ('" +
-            safeFilename +
-            "','" +
-            safePath +
-            "'," +
-            std::to_string(
-                fileSize
-            ) +
-            ")";
+                 std::string safePath =
+                     escapeSQL(
+                         conn,
+                         path);
 
-        if(
-            mysql_query(
-                conn,
-                query.c_str()
-            )
-        )
-        {
-            return errorResponse(
-    500,
-    "Database error"
-);
-        }
+                 std::string safeCategory =
+                     escapeSQL(
+                         conn,
+                         category);
 
-        crow::json::wvalue json;
+                 std::string query =
+                     "INSERT INTO files "
+                     "(filename,path,size,category) "
+                     "VALUES ('" +
+                     safeFilename +
+                     "','" +
+                     safePath +
+                     "'," +
+                     std::to_string(
+                         fileSize) +
+                     ",'" +
+                     safeCategory +
+                     "')";
 
-        json["success"] = true;
-        json["message"] = "Saved";
+                 if (
+                     mysql_query(
+                         conn,
+                         query.c_str()))
+                 {
+                     return errorResponse(
+                         500,
+                         "Database error");
+                 }
 
-        return crow::response(
-            json
-        );
+                 crow::json::wvalue json;
 
+                 json["success"] = true;
+                 json["message"] = "Saved";
 
-    });
+                 return crow::response(
+                     json);
+             });
 }

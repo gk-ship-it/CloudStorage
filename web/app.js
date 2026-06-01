@@ -11,6 +11,11 @@ const detailDialog = document.querySelector("#detailDialog");
 const detailTitle = document.querySelector("#detailTitle");
 const detailBody = document.querySelector("#detailBody");
 const closeDialogButton = document.querySelector("#closeDialogButton");
+const categoryButtons = document.querySelectorAll(".category-btn");
+let allFiles = [];
+
+let currentCategory =
+    "all";
 
 function setStatus(message) {
   statusText.textContent = message;
@@ -41,37 +46,6 @@ function formatBytes(value) {
 
   return `${(size / 1024 / 1024).toFixed(1)} MB`;
 }
-
-// function parseFiles(text) {
-//   return text
-//     .split("-------------------")
-//     .map((block) => {
-//       const file = {};
-
-//       block
-//         .trim()
-//         .split("\n")
-//         .forEach((line) => {
-//           const separator = line.indexOf(":");
-
-//           if (separator === -1) {
-//             return;
-//           }
-
-//           const key = line.slice(0, separator).trim().toLowerCase();
-//           const value = line.slice(separator + 1).trim();
-//           file[key] = value;
-//         });
-
-//       return {
-//         id: file.id || "",
-//         filename: file.filename || "",
-//         size: file.size || "",
-//         uploaded: file.uploaded || ""
-//       };
-//     })
-//     .filter((file) => file.filename);
-// }
 
 function createButton(label, className, onClick) {
   const button = document.createElement("button");
@@ -142,6 +116,31 @@ async function requestText(url, options = {}) {
   return text;
 }
 
+function filterFiles()
+{
+    if(
+        currentCategory === "all"
+    )
+    {
+        renderFiles(
+            allFiles
+        );
+
+        return;
+    }
+
+    const filtered =
+        allFiles.filter(
+            file =>
+                file.category ===
+                currentCategory
+        );
+
+    renderFiles(
+        filtered
+    );
+}
+
 async function loadFiles() {
   refreshButton.disabled = true;
   setStatus("Loading");
@@ -154,20 +153,20 @@ async function loadFiles() {
     const files =
       await response.json();
 
-    renderFiles(files);
+    allFiles = files;
+
+    filterFiles();
 
     setStatus("Ready");
   }
-  catch(error)
-  {
+  catch (error) {
     renderFiles([]);
 
     setStatus(
       error.message
     );
   }
-  finally
-  {
+  finally {
     refreshButton.disabled = false;
   }
 }
@@ -292,3 +291,19 @@ refreshButton.addEventListener("click", loadFiles);
 closeDialogButton.addEventListener("click", () => detailDialog.close());
 
 loadFiles();
+
+categoryButtons.forEach(
+    button =>
+    {
+        button.addEventListener(
+            "click",
+            () =>
+            {
+                currentCategory =
+                    button.dataset.category;
+
+                filterFiles();
+            }
+        );
+    }
+);

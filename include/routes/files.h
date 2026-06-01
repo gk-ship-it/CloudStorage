@@ -61,6 +61,13 @@ void registerFilesRoute(
         
             json[index]["filename"] =
                 row[1];
+                
+            json[index]["category"] =
+            (
+                row[5]
+                ? row[5]
+                : "others"
+            );
         
             json[index]["size"] =
             (
