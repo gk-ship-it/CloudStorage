@@ -12,6 +12,11 @@ const detailTitle = document.querySelector("#detailTitle");
 const detailBody = document.querySelector("#detailBody");
 const closeDialogButton = document.querySelector("#closeDialogButton");
 const categoryButtons = document.querySelectorAll(".category-btn");
+const searchInput =
+    document.querySelector(
+        "#searchInput"
+    );
+
 let allFiles = [];
 
 let currentCategory =
@@ -118,23 +123,36 @@ async function requestText(url, options = {}) {
 
 function filterFiles()
 {
+    const search =
+        searchInput.value
+            .toLowerCase()
+            .trim();
+
+    let filtered =
+        allFiles;
+
     if(
-        currentCategory === "all"
+        currentCategory !== "all"
     )
     {
-        renderFiles(
-            allFiles
-        );
-
-        return;
+        filtered =
+            filtered.filter(
+                file =>
+                    file.category ===
+                    currentCategory
+            );
     }
 
-    const filtered =
-        allFiles.filter(
-            file =>
-                file.category ===
-                currentCategory
-        );
+    if(search)
+    {
+        filtered =
+            filtered.filter(
+                file =>
+                    file.filename
+                        .toLowerCase()
+                        .includes(search)
+            );
+    }
 
     renderFiles(
         filtered
@@ -306,4 +324,9 @@ categoryButtons.forEach(
             }
         );
     }
+);
+
+searchInput.addEventListener(
+    "input",
+    filterFiles
 );
