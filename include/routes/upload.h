@@ -28,17 +28,25 @@ void registerUploadRoute(
                     "Authorization"
                 );
             
-                auto it =
-                sessions.find(
-                    token
-                );
-                if (it == sessions.end())
-                {
-                    return errorResponse(
-                         401,
-                         "Unathorized Login");
-                }
-                int userId =it->second;
+                int userId =
+    getUserIdFromToken(
+        conn,
+        token
+    );
+
+if(userId == -1)
+{
+    crow::json::wvalue json;
+
+    json["success"] = false;
+    json["message"] =
+        "Unauthorized access";
+
+    return crow::response(
+        401,
+        json
+    );
+}
 
                  if (!safe(filename))
                  {
@@ -50,7 +58,7 @@ void registerUploadRoute(
 
                 std::string category = getCategory(filename);
 
-                std::string path = "../uploads/" + category + "/" + filename;
+                std::string path = "/uploads/" + category + "/" + filename;
                      
                 std::ofstream file(path);
 

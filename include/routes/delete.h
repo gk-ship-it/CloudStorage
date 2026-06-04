@@ -27,17 +27,25 @@ void registerDeleteRoute(
                     "Authorization"
                 );
             
-                auto it =
-                sessions.find(
-                    token
-                );
-                if (it == sessions.end())
+                int userId =
+                    getUserIdFromToken(
+                        conn,
+                        token
+                    );
+                
+                if(userId == -1)
                 {
-                    return errorResponse(
-                         401,
-                         "Unauthorized access");
+                    crow::json::wvalue json;
+                
+                    json["success"] = false;
+                    json["message"] =
+                        "Unauthorized access";
+                
+                    return crow::response(
+                        401,
+                        json
+                    );
                 }
-                int userId =it->second;
 
         if(!safe(filename))
         {

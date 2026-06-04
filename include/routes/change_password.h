@@ -27,19 +27,27 @@ void registerChangePasswordRoute(
                     "Authorization"
                 );
             
-            auto it = sessions.find(token);
-            
-            if(
-                it == sessions.end()
-            )
-            {
-                return errorResponse(
-                    401,
-                    "Unauthorized access"
-                );
-            }
+            int userId =
+    getUserIdFromToken(
+        conn,
+        token
+    );
 
-            int userId = it->second;
+if(userId == -1)
+{
+    crow::json::wvalue json;
+
+    json["success"] = false;
+    json["message"] =
+        "Unauthorized access";
+
+    return crow::response(
+        401,
+        json
+    );
+}
+
+            
             std::string safeOldPassword =
                 escapeSQL(
                     conn,

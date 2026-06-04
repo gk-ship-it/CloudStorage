@@ -22,17 +22,25 @@ void registerFilesRoute(
                     "Authorization"
                 );
             
-                auto it =
-                sessions.find(
-                    token
-                );
-                if (it == sessions.end())
-                {
-                    return errorResponse(
-                         401,
-                         "Unauthorized access");
-                }
-                int userId =it->second;
+                int userId =
+    getUserIdFromToken(
+        conn,
+        token
+    );
+
+if(userId == -1)
+{
+    crow::json::wvalue json;
+
+    json["success"] = false;
+    json["message"] =
+        "Unauthorized access";
+
+    return crow::response(
+        401,
+        json
+    );
+}
 
                 std::string query = "SELECT * FROM files WHERE user_id = " + std::to_string(userId) + ";";
             

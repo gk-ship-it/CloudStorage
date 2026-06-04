@@ -7,7 +7,7 @@
 #include <mysql/mysql.h>
 #include <string>
 
-template<typename App>
+template <typename App>
 void registerLoginRoute(
     App &app,
     MYSQL *conn)
@@ -80,7 +80,17 @@ void registerLoginRoute(
                     std::stoi(row[0]);
 
                 std::string token = generateToken();
+
                 sessions[token] = userId;
+
+                std::string updatequery =
+                    "UPDATE users SET token='" +
+                    token +
+                    "' WHERE id=" +
+                    std::to_string(userId);
+
+                mysql_query(conn, updatequery.c_str());
+
 
                 crow::json::wvalue json;
                 

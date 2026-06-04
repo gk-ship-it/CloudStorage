@@ -356,42 +356,65 @@ closeRenameDialogButton.addEventListener(
     }
 );
 
-async function loadFiles() {
-  refreshButton.disabled = true;
-  setStatus("Loading");
+async function loadFiles()
+{
+    refreshButton.disabled = true;
+    setStatus("Loading");
 
-  try {
-    const response = await fetch(
-      `${API_BASE}/files`,
-      {
-        headers:
-        {
-          Authorization:
-            getToken()
-        }
-      }
-    );
+    try
+    {
+        const response =
+            await fetch(
+                `${API_BASE}/files`,
+                {
+                    headers:
+                    {
+                        Authorization:
+                            getToken()
+                    }
+                }
+            );
 
-    const files =
-      await response.json();
-    console.log(files);
+        const files =
+            await response.json();
 
-    allFiles = files;
+            if (!Array.isArray(files))
+            {
+                alert(
+                    files.message ||
+                    "Session expired. Please login again."
+                );
+              
+                localStorage.removeItem(
+                    "token"
+                );
+              
+                window.location.href =
+                    "login.html";
+              
+                return;
+            }
+            
+        console.log(files);
 
-    filterFiles();
+        allFiles = files;
 
-    setStatus("Ready");
-  }
-  catch (error) {
-    renderFiles([]);
+        filterFiles();
 
-    setStatus(
-      error.message
-    );
-  }
-  finally {
-    refreshButton.disabled = false;
-  }
+        setStatus("Ready");
+    }
+    catch(error)
+    {
+        renderFiles([]);
+
+        setStatus(
+            error.message
+        );
+    }
+    finally
+    {
+        refreshButton.disabled = false;
+    }
 }
 
 async function uploadFile() {
