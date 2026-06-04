@@ -16,6 +16,7 @@
 #include "routes/change_password.h"
 
 #include "crow.h"
+#include "crow/middlewares/cors.h"
 
 const char *dbPassword =
     std::getenv(
@@ -75,7 +76,20 @@ int main()
     std::cout
         << "MySQL Connected\n";
 
-    crow::SimpleApp app;
+    // crow::SimpleApp app;
+    crow::App<crow::CORSHandler> app;
+    app.get_middleware<crow::CORSHandler>()
+    .global()
+    .origin("*")
+    .headers(
+        "Authorization",
+        "Content-Type"
+    )
+    .methods(
+        crow::HTTPMethod::GET,
+        crow::HTTPMethod::POST,
+        crow::HTTPMethod::OPTIONS
+    );
     
     registerDownloadRoute(app, conn);
     registerFilesRoute(app, conn);

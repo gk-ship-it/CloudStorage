@@ -8,8 +8,9 @@
 #include <cstdio>
 #include <string>
 
+template<typename App>
 void registerRenameRoute(
-    crow::SimpleApp &app,
+    App &app,
     MYSQL *conn)
 {
     CROW_ROUTE(

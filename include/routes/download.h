@@ -7,8 +7,9 @@
 #include "cloud_utils.h"
 #include "sessions.h"
 
+template<typename App>
 void registerDownloadRoute(
-    crow::SimpleApp &app,
+    App &app,
     MYSQL *conn)
 {
     CROW_ROUTE(app, "/download/<string>")

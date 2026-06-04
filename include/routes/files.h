@@ -6,9 +6,9 @@
 
 #include <mysql/mysql.h>
 #include <string>
-
+template<typename App>
 void registerFilesRoute(
-    crow::SimpleApp &app,
+    App &app,
     MYSQL *conn)
 {
     CROW_ROUTE(app, "/files")

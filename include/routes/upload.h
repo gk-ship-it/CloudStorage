@@ -8,8 +8,9 @@
 #include <fstream>
 #include <string>
 
+template<typename App>
 void registerUploadRoute(
-    crow::SimpleApp &app,
+    App &app,
     MYSQL *conn)
 {
 

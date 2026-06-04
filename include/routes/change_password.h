@@ -7,8 +7,9 @@
 #include <mysql/mysql.h>
 #include <string>
 
+template<typename App>
 void registerChangePasswordRoute(
-    crow::SimpleApp &app,
+    App &app,
     MYSQL *conn)
 {
     CROW_ROUTE(
@@ -122,7 +123,7 @@ void registerChangePasswordRoute(
             json["success"] = true;
             json["message"] =
                 "Password changed";
-                    
+
             return crow::response(
                 json
             );
