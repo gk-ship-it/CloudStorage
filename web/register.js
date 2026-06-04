@@ -31,14 +31,31 @@ registerButton.addEventListener(
     register
 );
 
+let API_BASE = "";
+
+async function loadConfig()
+{
+    const response =
+        await fetch(
+            "backend-url.json"
+        );
+
+    const config =
+        await response.json();
+
+    API_BASE =
+        config.apiBase;
+}
+
 async function register()
 {
+    await loadConfig();
     const username = usernameInput.value.trim();
     const password = passwordInput.value;
 
     const response =
     await fetch(
-        `http://localhost:18080/register/${encodeURIComponent(username)}/${encodeURIComponent(password)}`,
+            `${API_BASE}/register/${encodeURIComponent(username)}/${encodeURIComponent(password)}`,
         {
             method: "POST"
         }

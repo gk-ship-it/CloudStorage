@@ -1,4 +1,18 @@
-const API_BASE = "http://localhost:18080";
+let API_BASE = "";
+
+async function loadConfig()
+{
+    const response =
+        await fetch(
+            "backend-url.json"
+        );
+
+    const config =
+        await response.json();
+
+    API_BASE =
+        config.apiBase;
+}
 
 const fileInput = document.querySelector("#fileInput");
 const fileNameInput = document.querySelector("#fileNameInput");
@@ -360,6 +374,7 @@ async function loadFiles() {
 
     const files =
       await response.json();
+    console.log(files);
 
     allFiles = files;
 
@@ -602,7 +617,12 @@ closePasswordDialogButton
 
 
 
-loadFiles();
+(async () =>
+{
+    await loadConfig();
+
+    loadFiles();
+})();
 
 categoryButtons.forEach(
   button => {
