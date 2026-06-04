@@ -1,3 +1,7 @@
+
+#include <unordered_map>
+#include <string>
+
 #include <mysql/mysql.h>
 #include <iostream>
 
@@ -7,8 +11,13 @@
 #include "routes/rename.h"
 #include "routes/delete.h"
 #include "routes/upload.h"
+#include "routes/register.h"
+#include "routes/login.h"
+#include "routes/change_password.h"
 
 #include "crow.h"
+
+std::unordered_map<std::string, int> sessions;
 
 int main()
 {
@@ -58,6 +67,9 @@ int main()
     registerRenameRoute(app, conn);
     registerDeleteRoute(app, conn);
     registerUploadRoute(app, conn);
+    registerRegisterRoute(app,conn);
+    registerLoginRoute(app, conn);
+    registerChangePasswordRoute(app, conn);
 
     CROW_ROUTE(app, "/")
     ([]()

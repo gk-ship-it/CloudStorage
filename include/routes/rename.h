@@ -2,6 +2,7 @@
 
 #include "crow.h"
 #include "cloud_utils.h"
+#include "sessions.h"
 
 #include <mysql/mysql.h>
 #include <cstdio>
@@ -17,9 +18,27 @@ void registerRenameRoute(
         .methods("POST"_method)
 
             ([conn](
+                 const crow::request &req,
                  std::string oldName,
                  std::string newName)
              {
+                std::string token =
+                req.get_header_value(
+                    "Authorization"
+                );
+            
+                auto it =
+                sessions.find(
+                    token
+                );
+                if (it == sessions.end())
+                {
+                    return errorResponse(
+                         401,
+                         "Unauthorized access");
+                }
+                int userId =it->second;
+
                  if (
                      !safe(oldName) ||
                      !safe(newName))
@@ -38,9 +57,7 @@ void registerRenameRoute(
                 std::string selectquery =
                     "SELECT path, category "
                     "FROM files "
-                    "WHERE filename='" +
-                    safeOldName +
-                    "'";
+                    "WHERE filename='" + safeOldName + "' AND user_id = " + std::to_string(userId) + ";";
                 
                 if(
                     mysql_query(
@@ -128,9 +145,7 @@ void registerRenameRoute(
                      "', path='" +
                      safeNewPath +
                      "' "
-                     "WHERE filename='" +
-                     safeOldName +
-                     "'";
+                     "WHERE filename='" + safeOldName + "' AND user_id = " + std::to_string(userId) + ";";
 
                  if (
                      mysql_query(

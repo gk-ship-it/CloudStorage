@@ -2,6 +2,7 @@
 
 #include "crow.h"
 #include "cloud_utils.h"
+#include "sessions.h"
 
 #include <mysql/mysql.h>
 #include <string>
@@ -13,40 +14,55 @@ void registerFileRoute(
     CROW_ROUTE(app, "/file/<string>")
         .methods("GET"_method)
 
-            ([conn](std::string filename)
+            ([conn](
+                 const crow::request &req,
+                 std::string filename)
              {
-        if(!safe(filename))
-        {
-            return errorResponse(
-    400,
-    "Invalid filename"
-);
-        }
+                std::string token =
+                req.get_header_value(
+                    "Authorization"
+                );
+            
+                auto it =
+                sessions.find(
+                    token
+                );
+                if (it == sessions.end())
+                {
+                    return errorResponse(
+                         401,
+                         "Unauthorized access");
+                }
+                int userId =it->second;
+                if(!safe(filename))
+                {
+                    return errorResponse(
+                        400,
+                        "Invalid filename"
+                    );
+                }
 
-        std::string safeFilename =
-            escapeSQL(
-                conn,
-                filename
-            );
-
-        std::string query =
-            "SELECT * FROM files "
-            "WHERE filename='" +
-            safeFilename +
-            "'";
-
-        if(
-            mysql_query(
-                conn,
-                query.c_str()
-            )
-        )
-        {
-            return errorResponse(
-    500,
-    "Database error"
-);
-        }
+                std::string safeFilename =
+                    escapeSQL(
+                        conn,
+                        filename
+                    );
+                
+                std::string query =
+                    "SELECT * FROM files WHERE filename = '" + safeFilename + "' AND user_id = " + std::to_string(userId) + ";";
+                
+                if(
+                    mysql_query(
+                        conn,
+                        query.c_str()
+                    )
+                )
+                {
+                    return errorResponse(
+                        500,
+                        "Database error"
+                    );
+                }
 
         MYSQL_RES *result =
             mysql_store_result(

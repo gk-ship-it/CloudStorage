@@ -2,6 +2,7 @@
 
 #include "crow.h"
 #include "cloud_utils.h"
+#include "sessions.h"
 
 #include <mysql/mysql.h>
 #include <fstream>
@@ -11,6 +12,7 @@ void registerUploadRoute(
     crow::SimpleApp &app,
     MYSQL *conn)
 {
+
     CROW_ROUTE(
         app,
         "/upload/<string>")
@@ -20,71 +22,60 @@ void registerUploadRoute(
                  const crow::request &req,
                  std::string filename)
              {
+                std::string token =
+                req.get_header_value(
+                    "Authorization"
+                );
+            
+                auto it =
+                sessions.find(
+                    token
+                );
+                if (it == sessions.end())
+                {
+                    return errorResponse(
+                         401,
+                         "Unathorized Login");
+                }
+                int userId =it->second;
+
                  if (!safe(filename))
                  {
-                     return errorResponse(
-                         400,
-                         "Invalid filename");
+                    return errorResponse(
+                        400,
+                        "Invalid filename"
+                    );
                  }
 
-                  std::string category =
-                     getCategory(
-                         filename);
+                std::string category = getCategory(filename);
 
-                 std::string path =
-                     "../uploads/" +
-                     category +
-                     "/" +
-                     filename;
+                std::string path = "../uploads/" + category + "/" + filename;
                      
-                 std::ofstream file(
-                    path
-                );
+                std::ofstream file(path);
 
-                 if (!file)
-                 {
-                     return errorResponse(
-                         500,
-                         "Cannot create file");
-                 }
+                if (!file)
+                {
+                    return errorResponse(
+                        500,
+                        "Cannot create file");
+                }
 
-                 file << req.body;
+                file << req.body;
 
-                 size_t fileSize =
-                     req.body.size();
+                size_t fileSize = req.body.size();
+                file.close();
 
-                 file.close();
+                 std::string safeFilename = escapeSQL(conn, filename);
 
-                
+                 std::string safePath = escapeSQL(conn, path);
 
-                 std::string safeFilename =
-                     escapeSQL(
-                         conn,
-                         filename);
-
-                 std::string safePath =
-                     escapeSQL(
-                         conn,
-                         path);
-
-                 std::string safeCategory =
-                     escapeSQL(
-                         conn,
-                         category);
+                 std::string safeCategory = escapeSQL(conn, category);
 
                  std::string query =
                      "INSERT INTO files "
-                     "(filename,path,size,category) "
-                     "VALUES ('" +
-                     safeFilename +
-                     "','" +
-                     safePath +
-                     "'," +
-                     std::to_string(
-                         fileSize) +
-                     ",'" +
-                     safeCategory +
-                     "')";
+                     "(filename,path,size,category,user_id) "
+                     "VALUES ('" + safeFilename + "','" + safePath + "'," + std::to_string(fileSize) + ",'" + safeCategory + "'," + std::to_string(userId) + ")";
+
 
                  if (
                      mysql_query(
@@ -102,6 +93,5 @@ void registerUploadRoute(
                  json["message"] = "Saved";
 
                  return crow::response(
-                     json);
-             });
+                     json); });
 }

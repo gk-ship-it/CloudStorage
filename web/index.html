@@ -15,6 +15,14 @@
         <p class="eyebrow">Cloud Storage</p>
         <h1>Files</h1>
       </div>
+
+      <button id="logoutButton">
+          Logout
+      </button>
+      <button id="changePasswordButton">
+          Change Password
+      </button>
+
       <button class="icon-button" id="refreshButton" type="button" title="Refresh files" aria-label="Refresh files">
         <span aria-hidden="true">↻</span>
       </button>
@@ -85,6 +93,40 @@
     </div>
     <pre id="detailBody"></pre>
   </dialog>
+
+  <dialog id="passwordDialog" class="dialog">
+  <div class="dialog-head">
+    <h2>Change Password</h2>
+
+    <button
+      class="icon-button small"
+      id="closePasswordDialogButton"
+      type="button"
+      title="Close"
+      aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+  </div>
+
+  <input
+    type="password"
+    id="oldPasswordInput"
+    placeholder="Old Password"
+  >
+
+  <input
+    type="password"
+    id="newPasswordInput"
+    placeholder="New Password"
+  >
+
+  <button
+    id="submitPasswordButton"
+    type="button">
+    Change Password
+  </button>
+</dialog>
+
 
   <script src="app.js"></script>
 </body>

@@ -2,6 +2,7 @@
 
 #include "crow.h"
 #include "cloud_utils.h"
+#include "sessions.h"
 
 #include <mysql/mysql.h>
 #include <cstdio>
@@ -16,8 +17,27 @@ void registerDeleteRoute(
         "/delete/<string>")
         .methods("POST"_method)
 
-            ([conn](std::string filename)
+            ([conn](
+                const crow::request &req,
+                std::string filename)
              {
+                std::string token =
+                req.get_header_value(
+                    "Authorization"
+                );
+            
+                auto it =
+                sessions.find(
+                    token
+                );
+                if (it == sessions.end())
+                {
+                    return errorResponse(
+                         401,
+                         "Unauthorized access");
+                }
+                int userId =it->second;
+
         if(!safe(filename))
         {
             return errorResponse(
@@ -35,9 +55,7 @@ void registerDeleteRoute(
             std::string selectQuery =
                 "SELECT path "
                 "FROM files "
-                "WHERE filename='" +
-                safeFilename +
-                "'";
+                "WHERE filename='" + safeFilename + "' AND user_id = " + std::to_string(userId) + ";";
             
             if(
                 mysql_query(
@@ -103,9 +121,7 @@ void registerDeleteRoute(
 
         std::string query =
             "DELETE FROM files "
-            "WHERE filename='" +
-            safeFilename +
-            "'";
+            "WHERE filename='" + safeFilename + "' AND user_id = " + std::to_string(userId) + ";";
 
         if(
             mysql_query(

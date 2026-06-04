@@ -3,6 +3,7 @@
 #include "crow.h"
 #include <mysql/mysql.h>
 #include <string>
+#include <random>
 
 bool safe(std::string name)
 {
@@ -121,4 +122,27 @@ crow::response errorResponse(
         code,
         json
     );
+}
+
+std::string generateToken()
+{
+    std::string characters =
+        "0123456789abcdef";
+
+    std::string token;
+    std::random_device rd;
+        std::mt19937 generator(
+            rd()
+        );
+    std::uniform_int_distribution<> dist(
+            0,
+            characters.size()-1
+        );
+    for (int i = 0; i < 16; i++)
+    {
+        int index =dist(generator);
+        token += characters[index];
+    }
+    
+    return token;
 }

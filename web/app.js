@@ -4,23 +4,79 @@ const fileInput = document.querySelector("#fileInput");
 const fileNameInput = document.querySelector("#fileNameInput");
 const uploadButton = document.querySelector("#uploadButton");
 const refreshButton = document.querySelector("#refreshButton");
+
+const logoutButton =
+    document.querySelector(
+        "#logoutButton"
+    );
+
+const changePasswordButton =
+    document.querySelector(
+        "#changePasswordButton"
+    );
+
+
+
+logoutButton.addEventListener(
+    "click",
+    logout
+);
+changePasswordButton.addEventListener(
+    "click",
+    changePassword
+);
+
 const fileList = document.querySelector("#fileList");
 const statusText = document.querySelector("#statusText");
 const fileCount = document.querySelector("#fileCount");
 const detailDialog = document.querySelector("#detailDialog");
 const detailTitle = document.querySelector("#detailTitle");
 const detailBody = document.querySelector("#detailBody");
+const passwordDialog =
+    document.querySelector(
+        "#passwordDialog"
+    );
+
+const closePasswordDialogButton =
+    document.querySelector(
+        "#closePasswordDialogButton"
+    );
+
+const oldPasswordInput =
+    document.querySelector(
+        "#oldPasswordInput"
+    );
+
+const newPasswordInput =
+    document.querySelector(
+        "#newPasswordInput"
+    );
+
+const submitPasswordButton =
+    document.querySelector(
+        "#submitPasswordButton"
+    );
 const closeDialogButton = document.querySelector("#closeDialogButton");
 const categoryButtons = document.querySelectorAll(".category-btn");
 const searchInput =
-    document.querySelector(
-        "#searchInput"
-    );
+  document.querySelector(
+    "#searchInput"
+  );
 
 let allFiles = [];
 
 let currentCategory =
-    "all";
+  "all";
+function getToken() {
+  return localStorage.getItem(
+    "token"
+  );
+}
+if(!getToken())
+{
+    window.location.href =
+        "login.html";
+}
 
 function setStatus(message) {
   statusText.textContent = message;
@@ -50,6 +106,92 @@ function formatBytes(value) {
   }
 
   return `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function logout()
+{
+    localStorage.removeItem(
+        "token"
+    );
+
+    window.location.href =
+        "login.html";
+}
+
+function changePassword()
+{
+    oldPasswordInput.value =
+        "";
+
+    newPasswordInput.value =
+        "";
+
+    passwordDialog.showModal();
+}
+async function submitPasswordChange()
+{
+    const oldPassword =
+        oldPasswordInput.value.trim();
+
+    const newPassword =
+        newPasswordInput.value.trim();
+    if(
+        !oldPassword ||
+        !newPassword
+    )
+    {
+        setStatus(
+            "Fill both password fields"
+        );
+      
+        return;
+    }
+    try
+{
+    const response =
+        await fetch(
+            `${API_BASE}/change-password/${encodeURIComponent(oldPassword)}/${encodeURIComponent(newPassword)}`,
+            {
+                method: "POST",
+
+                headers:
+                {
+                    Authorization:
+                        getToken()
+                }
+            }
+        );
+
+    const data =
+        await response.json();
+    
+        setStatus(
+        data.message
+    );
+        if(
+    data.success
+)
+{
+    alert(
+        "Password changed successfully"
+    );
+
+    passwordDialog.close();
+
+    oldPasswordInput.value =
+        "";
+
+    newPasswordInput.value =
+        "";
+}
+    }
+catch(error)
+{
+    setStatus(
+        error.message
+    );
+}
+    
 }
 
 function createButton(label, className, onClick) {
@@ -93,10 +235,14 @@ function renderFiles(files) {
     const actions = document.createElement("div");
     actions.className = "actions";
 
-    const download = document.createElement("a");
-    download.href = `${API_BASE}/download/${encodeName(file.filename)}`;
-    download.textContent = "Download";
-    download.setAttribute("download", file.filename);
+    const download =
+      createButton(
+        "Download",
+        "text-button",
+        () => downloadFile(
+          file.filename
+        )
+      );
 
     actions.append(
       createButton("Details", "text-button", () => showDetails(file.filename)),
@@ -121,42 +267,39 @@ async function requestText(url, options = {}) {
   return text;
 }
 
-function filterFiles()
-{
-    const search =
-        searchInput.value
+function filterFiles() {
+  const search =
+    searchInput.value
+      .toLowerCase()
+      .trim();
+
+  let filtered =
+    allFiles;
+
+  if (
+    currentCategory !== "all"
+  ) {
+    filtered =
+      filtered.filter(
+        file =>
+          file.category ===
+          currentCategory
+      );
+  }
+
+  if (search) {
+    filtered =
+      filtered.filter(
+        file =>
+          file.filename
             .toLowerCase()
-            .trim();
+            .includes(search)
+      );
+  }
 
-    let filtered =
-        allFiles;
-
-    if(
-        currentCategory !== "all"
-    )
-    {
-        filtered =
-            filtered.filter(
-                file =>
-                    file.category ===
-                    currentCategory
-            );
-    }
-
-    if(search)
-    {
-        filtered =
-            filtered.filter(
-                file =>
-                    file.filename
-                        .toLowerCase()
-                        .includes(search)
-            );
-    }
-
-    renderFiles(
-        filtered
-    );
+  renderFiles(
+    filtered
+  );
 }
 
 async function loadFiles() {
@@ -165,7 +308,14 @@ async function loadFiles() {
 
   try {
     const response = await fetch(
-      `${API_BASE}/files`
+      `${API_BASE}/files`,
+      {
+        headers:
+        {
+          Authorization:
+            getToken()
+        }
+      }
     );
 
     const files =
@@ -208,10 +358,17 @@ async function uploadFile() {
   setStatus("Uploading");
 
   try {
-    await requestText(`${API_BASE}/upload/${encodeName(filename)}`, {
-      method: "POST",
-      body: selectedFile
-    });
+    await requestText(`${API_BASE}/upload/${encodeName(filename)}`,
+      {
+        headers:
+        {
+          Authorization:
+            getToken()
+        },
+
+        method: "POST",
+        body: selectedFile
+      });
 
     fileInput.value = "";
     fileNameInput.value = "";
@@ -231,8 +388,14 @@ async function showDetails(filename) {
 
   try {
     const response = await fetch(
-      `${API_BASE}/file/${encodeName(filename)}`
-    );
+      `${API_BASE}/file/${encodeName(filename)}`,
+      {
+        headers:
+        {
+          Authorization:
+            getToken()
+        }
+      });
 
     const file = await response.json();
 
@@ -267,6 +430,11 @@ async function renameFile(oldName) {
 
   try {
     await requestText(`${API_BASE}/rename/${encodeName(oldName)}/${encodeName(cleanName)}`, {
+      headers:
+      {
+        Authorization:
+          getToken()
+      },
       method: "POST"
     });
     setStatus("Renamed");
@@ -287,6 +455,11 @@ async function deleteFile(filename) {
 
   try {
     await requestText(`${API_BASE}/delete/${encodeName(filename)}`, {
+      headers:
+      {
+        Authorization:
+          getToken()
+      },
       method: "POST"
     });
     setStatus("Deleted");
@@ -294,6 +467,47 @@ async function deleteFile(filename) {
   } catch (error) {
     setStatus(error.message);
   }
+}
+
+async function downloadFile(filename) {
+  const response =
+    await fetch(
+        `${API_BASE}/download/${encodeName(filename)}`,
+        {
+            headers:
+            {
+                Authorization:
+                    getToken()
+            }
+        }
+    );
+    const text =
+    await response.text();
+
+    const blob =
+    new Blob(
+        [text]
+    );
+    const url =
+    URL.createObjectURL(
+        blob
+    );
+
+const link =
+    document.createElement(
+        "a"
+    );
+
+link.href = url;
+
+link.download =
+    filename;
+
+link.click();
+
+URL.revokeObjectURL(
+    url
+);
 }
 
 fileInput.addEventListener("change", () => {
@@ -307,26 +521,35 @@ fileInput.addEventListener("change", () => {
 uploadButton.addEventListener("click", uploadFile);
 refreshButton.addEventListener("click", loadFiles);
 closeDialogButton.addEventListener("click", () => detailDialog.close());
+closePasswordDialogButton
+    .addEventListener(
+        "click",
+        () =>
+            passwordDialog.close()
+    );
+
+submitPasswordButton.addEventListener(
+    "click",
+    submitPasswordChange
+);
 
 loadFiles();
 
 categoryButtons.forEach(
-    button =>
-    {
-        button.addEventListener(
-            "click",
-            () =>
-            {
-                currentCategory =
-                    button.dataset.category;
+  button => {
+    button.addEventListener(
+      "click",
+      () => {
+        currentCategory =
+          button.dataset.category;
 
-                filterFiles();
-            }
-        );
-    }
+        filterFiles();
+      }
+    );
+  }
 );
 
 searchInput.addEventListener(
-    "input",
-    filterFiles
+  "input",
+  filterFiles
 );

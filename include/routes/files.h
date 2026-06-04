@@ -2,6 +2,7 @@
 
 #include "crow.h"
 #include "cloud_utils.h"
+#include "sessions.h"
 
 #include <mysql/mysql.h>
 #include <string>
@@ -13,19 +14,39 @@ void registerFilesRoute(
     CROW_ROUTE(app, "/files")
         .methods("GET"_method)
 
-            ([conn]()
-             {
-        if(
-            mysql_query(
-                conn,
-                "SELECT * FROM files"
-            )
-        )
-        {
-            return errorResponse(
-    500,
-    "Database error"
-);
+            ([conn](
+                 const crow::request &req)
+            {
+                std::string token =
+                req.get_header_value(
+                    "Authorization"
+                );
+            
+                auto it =
+                sessions.find(
+                    token
+                );
+                if (it == sessions.end())
+                {
+                    return errorResponse(
+                         401,
+                         "Unauthorized access");
+                }
+                int userId =it->second;
+
+                std::string query = "SELECT * FROM files WHERE user_id = " + std::to_string(userId) + ";";
+            
+                if(
+                    mysql_query(
+                        conn,
+                        query.c_str()
+                    )
+                )
+                {
+                    return errorResponse(
+            500,
+            "Database error"
+        );
         }
 
         MYSQL_RES *result =
@@ -88,6 +109,5 @@ void registerFilesRoute(
 
         return crow::response(
             json
-        );    
-    });
+        ); });
 }
