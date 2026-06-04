@@ -17,6 +17,11 @@
 
 #include "crow.h"
 
+const char *dbPassword =
+    std::getenv(
+        "DB_PASSWORD"
+    );
+
 std::unordered_map<std::string, int> sessions;
 
 int main()
@@ -35,15 +40,25 @@ int main()
 
     MYSQL *result;
 
+    if(dbPassword == nullptr)
+    {
+        std::cout
+            << "DB_PASSWORD not set"
+            << std::endl;
+
+        return 1;
+    }
+
     result = mysql_real_connect(
         conn,
         "localhost",
         "root",
-        "Gk13(18)",
+        dbPassword,//here put your password and dbPassword towork like previous
         "cloud_storage",
         0,
         NULL,
-        0);
+        0
+    );
 
     if (result == NULL)
     {
@@ -61,6 +76,7 @@ int main()
         << "MySQL Connected\n";
 
     crow::SimpleApp app;
+    
     registerDownloadRoute(app, conn);
     registerFilesRoute(app, conn);
     registerFileRoute(app, conn);

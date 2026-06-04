@@ -15,7 +15,7 @@ const changePasswordButton =
         "#changePasswordButton"
     );
 
-
+let renameOldFilename = "";
 
 logoutButton.addEventListener(
     "click",
@@ -25,6 +25,7 @@ changePasswordButton.addEventListener(
     "click",
     changePassword
 );
+
 
 const fileList = document.querySelector("#fileList");
 const statusText = document.querySelector("#statusText");
@@ -62,6 +63,27 @@ const searchInput =
   document.querySelector(
     "#searchInput"
   );
+
+const renameDialog =
+    document.getElementById(
+        "renameDialog"
+    );
+
+const renameInput =
+    document.getElementById(
+        "renameInput"
+    );
+
+const submitRenameButton =
+    document.getElementById(
+        "submitRenameButton"
+    );
+
+const closeRenameDialogButton =
+    document.getElementById(
+        "closeRenameDialogButton"
+    );
+
 
 let allFiles = [];
 
@@ -302,6 +324,24 @@ function filterFiles() {
   );
 }
 
+submitPasswordButton.addEventListener(
+    "click",
+    submitPasswordChange
+);
+
+submitRenameButton.addEventListener(
+    "click",
+    submitRename
+);
+
+closeRenameDialogButton.addEventListener(
+    "click",
+    () =>
+    {
+        renameDialog.close();
+    }
+);
+
 async function loadFiles() {
   refreshButton.disabled = true;
   setStatus("Loading");
@@ -412,36 +452,68 @@ async function showDetails(filename) {
   }
 }
 
-async function renameFile(oldName) {
-  const newName = window.prompt("New filename", oldName);
+function renameFile(oldName)
+{
+    renameOldFilename =
+        oldName;
 
-  if (newName === null) {
-    return;
-  }
+    renameInput.value =
+        oldName;
 
-  const cleanName = newName.trim();
+    renameDialog.showModal();
+}
 
-  if (!isSafeName(cleanName)) {
-    setStatus("Invalid filename");
-    return;
-  }
+async function submitRename()
+{
+    const cleanName =
+        renameInput.value.trim();
 
-  setStatus("Renaming");
+    if(
+        !isSafeName(
+            cleanName
+        )
+    )
+    {
+        setStatus(
+            "Invalid filename"
+        );
 
-  try {
-    await requestText(`${API_BASE}/rename/${encodeName(oldName)}/${encodeName(cleanName)}`, {
-      headers:
-      {
-        Authorization:
-          getToken()
-      },
-      method: "POST"
-    });
-    setStatus("Renamed");
-    await loadFiles();
-  } catch (error) {
-    setStatus(error.message);
-  }
+        return;
+    }
+
+    setStatus(
+        "Renaming"
+    );
+
+    try
+    {
+        await requestText(
+            `${API_BASE}/rename/${encodeName(renameOldFilename)}/${encodeName(cleanName)}`,
+            {
+                headers:
+                {
+                    Authorization:
+                        getToken()
+                },
+
+                method: "POST"
+            }
+        );
+
+        renameDialog.close();
+
+        setStatus(
+            "Renamed"
+        );
+
+        await loadFiles();
+    }
+    catch(error)
+    {
+        setStatus(
+            error.message
+        );
+    }
 }
 
 async function deleteFile(filename) {
@@ -528,10 +600,7 @@ closePasswordDialogButton
             passwordDialog.close()
     );
 
-submitPasswordButton.addEventListener(
-    "click",
-    submitPasswordChange
-);
+
 
 loadFiles();
 
