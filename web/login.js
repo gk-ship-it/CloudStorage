@@ -74,6 +74,10 @@ async function login() {
         "token",
         data.token
     );
+    localStorage.setItem(
+        "username",
+        username
+    );
     window.location.href =
     "index.html";
     

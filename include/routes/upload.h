@@ -58,7 +58,7 @@ if(userId == -1)
 
                 std::string category = getCategory(filename);
 
-                std::string path = "/uploads/" + category + "/" + filename;
+                std::string path = "uploads/" + category + "/" + filename;
                      
                 std::ofstream file(path);
 

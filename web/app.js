@@ -17,7 +17,12 @@ async function loadConfig()
 const fileInput = document.querySelector("#fileInput");
 const fileNameInput = document.querySelector("#fileNameInput");
 const uploadButton = document.querySelector("#uploadButton");
+const uploadProgressWrap = document.querySelector("#uploadProgressWrap");
+const uploadProgress = document.querySelector("#uploadProgress");
+const uploadProgressText = document.querySelector("#uploadProgressText");
 const refreshButton = document.querySelector("#refreshButton");
+const darkModeButton = document.querySelector("#darkModeButton");
+const usernameText = document.querySelector("#usernameText");
 
 const logoutButton =
     document.querySelector(
@@ -38,6 +43,10 @@ logoutButton.addEventListener(
 changePasswordButton.addEventListener(
     "click",
     changePassword
+);
+darkModeButton.addEventListener(
+    "click",
+    toggleDarkMode
 );
 
 
@@ -118,6 +127,58 @@ function setStatus(message) {
   statusText.textContent = message;
 }
 
+function applyDarkMode(enabled) {
+  document.body.classList.toggle(
+    "dark-mode",
+    enabled
+  );
+
+  darkModeButton.setAttribute(
+    "aria-pressed",
+    String(enabled)
+  );
+}
+
+function toggleDarkMode() {
+  const enabled =
+    !document.body.classList.contains(
+      "dark-mode"
+    );
+
+  localStorage.setItem(
+    "darkMode",
+    enabled ? "true" : "false"
+  );
+
+  applyDarkMode(
+    enabled
+  );
+}
+
+function showUsername() {
+  const username =
+    localStorage.getItem(
+      "username"
+    );
+
+  usernameText.textContent =
+    username
+      ? `Signed in as ${username}`
+      : "Signed in";
+}
+
+function setUploadProgress(percent) {
+  const cleanPercent = Math.max(0, Math.min(100, Math.round(percent)));
+
+  uploadProgress.value = cleanPercent;
+  uploadProgressText.textContent = `${cleanPercent}%`;
+}
+
+function resetUploadProgress() {
+  setUploadProgress(0);
+  uploadProgressWrap.hidden = true;
+}
+
 function encodeName(name) {
   return encodeURIComponent(name);
 }
@@ -148,6 +209,9 @@ function logout()
 {
     localStorage.removeItem(
         "token"
+    );
+    localStorage.removeItem(
+        "username"
     );
 
     window.location.href =
@@ -303,6 +367,43 @@ async function requestText(url, options = {}) {
   return text;
 }
 
+function uploadWithProgress(url, file) {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+
+    request.open("POST", url);
+    request.setRequestHeader("Authorization", getToken());
+
+    request.upload.addEventListener("progress", (event) => {
+      if (!event.lengthComputable) {
+        return;
+      }
+
+      setUploadProgress((event.loaded / event.total) * 100);
+    });
+
+    request.addEventListener("load", () => {
+      if (request.status >= 200 && request.status < 300) {
+        setUploadProgress(100);
+        resolve(request.responseText);
+        return;
+      }
+
+      reject(new Error(request.responseText || `Request failed with ${request.status}`));
+    });
+
+    request.addEventListener("error", () => {
+      reject(new Error("Upload failed"));
+    });
+
+    request.addEventListener("abort", () => {
+      reject(new Error("Upload cancelled"));
+    });
+
+    request.send(file);
+  });
+}
+
 function filterFiles() {
   const search =
     searchInput.value
@@ -433,20 +534,15 @@ async function uploadFile() {
   }
 
   uploadButton.disabled = true;
+  uploadProgressWrap.hidden = false;
+  setUploadProgress(0);
   setStatus("Uploading");
 
   try {
-    await requestText(`${API_BASE}/upload/${encodeName(filename)}`,
-      {
-        headers:
-        {
-          Authorization:
-            getToken()
-        },
-
-        method: "POST",
-        body: selectedFile
-      });
+    await uploadWithProgress(
+      `${API_BASE}/upload/${encodeName(filename)}`,
+      selectedFile
+    );
 
     fileInput.value = "";
     fileNameInput.value = "";
@@ -456,6 +552,9 @@ async function uploadFile() {
     setStatus(error.message);
   } finally {
     uploadButton.disabled = false;
+    if (statusText.textContent !== "Uploaded") {
+      resetUploadProgress();
+    }
   }
 }
 
@@ -642,6 +741,13 @@ closePasswordDialogButton
 
 (async () =>
 {
+    showUsername();
+    applyDarkMode(
+        localStorage.getItem(
+            "darkMode"
+        ) === "true"
+    );
+
     await loadConfig();
 
     loadFiles();

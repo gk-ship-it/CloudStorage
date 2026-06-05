@@ -11,21 +11,29 @@
 <body>
   <main class="shell">
     <header class="topbar">
-      <div>
+      <div class="brand-block">
         <p class="eyebrow">Cloud Storage</p>
         <h1>Files</h1>
+        <p class="user-name" id="usernameText">User</p>
       </div>
 
-      <button id="logoutButton">
-          Logout
-      </button>
-      <button id="changePasswordButton">
-          Change Password
-      </button>
+      <div class="topbar-center">
+        <button class="icon-button" id="refreshButton" type="button" title="Refresh files" aria-label="Refresh files">
+          <span aria-hidden="true">↻</span>
+        </button>
+        <button class="icon-button" id="darkModeButton" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">
+          <span aria-hidden="true">◐</span>
+        </button>
+      </div>
 
-      <button class="icon-button" id="refreshButton" type="button" title="Refresh files" aria-label="Refresh files">
-        <span aria-hidden="true">↻</span>
-      </button>
+      <div class="topbar-actions">
+        <button class="text-button" id="changePasswordButton" type="button">
+            Change Password
+        </button>
+        <button class="danger-button" id="logoutButton" type="button">
+            Logout
+        </button>
+      </div>
     </header>
 
     <section class="upload-panel" aria-label="Upload file">
@@ -34,6 +42,10 @@
         <input id="fileNameInput" type="text" placeholder="filename.txt" autocomplete="off">
       </div>
       <button class="primary-button" id="uploadButton" type="button">Upload</button>
+      <div class="upload-progress" id="uploadProgressWrap" hidden>
+        <progress id="uploadProgress" value="0" max="100"></progress>
+        <span id="uploadProgressText">0%</span>
+      </div>
     </section>
 
     <section class="status-row" aria-live="polite">

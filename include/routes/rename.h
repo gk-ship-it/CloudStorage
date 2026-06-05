@@ -122,7 +122,7 @@ if(userId == -1)
                 );
                 
                 std::string newPath =
-                    "/uploads/" +
+                    "uploads/" +
                     category +
                     "/" +
                     newName;
